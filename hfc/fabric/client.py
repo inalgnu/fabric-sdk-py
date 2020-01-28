@@ -1356,8 +1356,7 @@ class Client(object):
             for target_peer in target_peers:
                 channel_event_hub = channel.newChannelEventHub(target_peer,
                                                                requestor)
-                stream = channel_event_hub.connect()
-                event_stream.append(stream)
+                event_stream.append(channel_event_hub.connect())
 
                 txid = channel_event_hub.registerTxEvent(
                     self.evt_tx_id,
@@ -1723,19 +1722,23 @@ class Client(object):
                 raise e
             else:
                 # check if all tx are valids
-                txEvents = self.evts[self.evt_tx_id]['txEvents']
-                statuses = [x['tx_status'] for x in txEvents]
+                tx_events = self.evts[self.evt_tx_id]['txEvents']
+                statuses = [x['tx_status'] for x in tx_events]
                 if not all([x == 'VALID' for x in statuses]):
                     raise Exception(statuses)
             finally:
                 # disconnect channel_event_hubs
                 if cc_pattern is not None:
                     for x in self.evts[self.evt_tx_id]['peer']:
+                        _logger.info(f'disconnecting from peer {x}')
                         x['channel_event_hub'].disconnect()
                 else:
                     cehs = self.evts[self.evt_tx_id]['channel_event_hubs']
                     for x in cehs:
+                        _logger.info(f'disconnecting from peer {x}')
                         x.disconnect()
+
+                #channel_event_hub.connect()
 
         res = decode_proposal_response_payload(res[0].payload)
         return res['extension']['response']['payload'].decode('utf-8')
