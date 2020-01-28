@@ -1703,7 +1703,7 @@ class Client(object):
 
                     self.evts[txid]['channel_event_hubs'] +=\
                         [channel_event_hub]
-
+            _logger.info(f'using wait_for_event')
             try:
                 await asyncio.wait_for(asyncio.gather(*event_stream,
                                                       return_exceptions=True),
@@ -1727,6 +1727,7 @@ class Client(object):
                 if not all([x == 'VALID' for x in statuses]):
                     raise Exception(statuses)
             finally:
+                _logger.info(f'passing in the finally')
                 # disconnect channel_event_hubs
                 if cc_pattern is not None:
                     for x in self.evts[self.evt_tx_id]['peer']:
@@ -1737,8 +1738,7 @@ class Client(object):
                     for x in cehs:
                         _logger.info(f'disconnecting from peer {x}')
                         x.disconnect()
-
-                #channel_event_hub.connect()
+                channel_event_hub.disconnect()
 
         res = decode_proposal_response_payload(res[0].payload)
         return res['extension']['response']['payload'].decode('utf-8')
